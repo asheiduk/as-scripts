@@ -1,0 +1,42 @@
+#!/bin/bash
+
+#
+# svn-am  -- svn apply multiple patches
+#
+#
+#    svn-am *.patch
+#
+# AH
+
+
+work=/tmp
+#quiet="--quiet"
+
+panic (){
+    echo 1>&2 "$*"
+    exit 1
+}
+
+encoding="$(git config i18n.commitencoding || echo utf-8)"
+
+for p in "$@"
+do
+    echo "### apply patch $p"
+    
+    git mailinfo -b < "$p" > "$work/info" "$work/message" "$work/patch" || panic "# mailinfo failed"
+    
+    (
+        sed -n 's/^Subject: //p' "$work/info"
+	echo
+	cat "$work/message"
+	echo
+	sed -n 's/^Author: /Git-Author: /p' "$work/info"
+    ) | git stripspace > "$work/message-cleaned"
+    
+    [ -z "$quiet" ] || echo "# patching"
+    svn patch $quiet "$work/patch" || panic "# svn patch failed"
+    
+    [ -z "$quiet" ] || echo "# committing"
+    svn commit $quiet --encoding "$encoding" -F "$work/message-cleaned" || panic "# svn commit failed"
+    
+done
