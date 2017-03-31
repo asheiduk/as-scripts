@@ -19,7 +19,7 @@
 
 dashless="$(basename -- "$0" | sed 's/-/ /')"
 OPTIONS_SPEC="\
-$dashless [options] <branch>...
+$dashless [options] (<branch> | +<branch>)...
 $dashless [--all|-a] [options]
 
 Update a local branch (not currently checked out) to the remote
@@ -36,6 +36,7 @@ but does not touch the worktree.
 Using --all updates all local branches which have configured upstream
 branches.
 
+To force an update of only some branches, prepend '+' to the branch name.
 --
  Available options are
 a,all!          update all branches with configured upstreams
@@ -70,6 +71,7 @@ do
     shift
 done
 
+
 if [ -n "$opt_all" ]
 then
     # either "--all" XOR branch names
@@ -85,13 +87,22 @@ then
     done
 fi
 
-
 fetch_refspecs=
 for branch in "$@"
 do
+    # strip optional '+'
+    force_branch=
+    case "$branch" in
+        +*)
+	    branch=${branch#+}
+	    force_branch=+
+	    ;;
+    esac
+    
+    # get upstream branch
     if upstream=$(git rev-parse --abbrev-ref "$branch@{upstream}" 2>/dev/null)
     then
-        fetch_refspecs="$fetch_refspecs $upstream:$branch"
+        fetch_refspecs="$fetch_refspecs $force_branch$upstream:$branch"
     else
         [ -n "$opt_all" ] || die "cannot get upstream ref for $branch"
     fi
