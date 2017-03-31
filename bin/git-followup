@@ -1,0 +1,32 @@
+#!/bin/sh
+
+#
+# git followup <branch>
+#
+# Update a local branch (not currently checked out) to the remote
+# tracking branch. Will fail if the branch cannot be fast-forwarded.
+#
+# So it's basically the same as
+#
+#    git checkout $branch
+#    git pull --ff-only
+#    git checkout -
+#
+# but does not touch the worktree.
+#
+# AH
+#
+
+panic(){
+    echo 1>&2 "$*"
+    exit 1
+}
+
+branch="$1"
+[ -n "$branch" ] || panic "no branch given"
+
+upstream=$(git rev-parse --symbolic-full-name "$branch@{upstream}")
+[ -n "$upstream" ] || panic "cannot get upstream ref for $branch"
+
+set -x
+exec git fetch . "$upstream:$branch"
