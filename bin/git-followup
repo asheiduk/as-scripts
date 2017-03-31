@@ -17,16 +17,15 @@
 # AH
 #
 
-panic(){
-    echo 1>&2 "$*"
-    exit 1
-}
+USAGE='<branch>'
+
+. git-sh-setup
 
 branch="$1"
-[ -n "$branch" ] || panic "no branch given"
+[ -n "$branch" ] || usage
 
 upstream=$(git rev-parse --symbolic-full-name "$branch@{upstream}")
-[ -n "$upstream" ] || panic "cannot get upstream ref for $branch"
+[ -n "$upstream" ] || die "cannot get upstream ref for $branch"
 
 set -x
 exec git fetch . "$upstream:$branch"
