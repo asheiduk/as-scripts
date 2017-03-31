@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-# git followup <branch>
+# git followup <branch>...
 #
 # Update a local branch (not currently checked out) to the remote
 # tracking branch. Will fail if the branch cannot be fast-forwarded.
@@ -17,15 +17,61 @@
 # AH
 #
 
-USAGE='<branch>'
+dashless="$(basename -- "$0" | sed 's/-/ /')"
+OPTIONS_SPEC="\
+$dashless [options] <branch>...
+
+Update a local branch (not currently checked out) to the remote
+tracking branch. Will fail if the branch cannot be fast-forwarded.
+
+So it's basically the same as
+
+    git checkout <branch>
+    git pull --ff-only
+    git checkout -
+
+but does not touch the worktree.
+--
+ Available options are
+f,force!        force update of all branches
+n,dry-run!      don't update, show commands only
+"
 
 . git-sh-setup
 
-branch="$1"
-[ -n "$branch" ] || usage
+set_reflog_action "$dashless"
 
-upstream=$(git rev-parse --symbolic-full-name "$branch@{upstream}")
-[ -n "$upstream" ] || die "cannot get upstream ref for $branch"
+#?# require_work_tree_exists
+
+fetch_opts=
+while [ $# != 0 ]
+do
+    case "$1" in
+	-f|--force)
+	    fetch_opts="$fetch_opts --force"
+	    ;;
+	-n|--dry-run)
+	    fetch_opts="$fetch_opts --dry-run"
+	    ;;
+	--)
+	    shift
+	    break
+	    ;;
+    esac
+    shift
+done
+
+
+fetch_refspecs=
+for branch in "$@"
+do
+    upstream=$(git rev-parse --abbrev-ref "$branch@{upstream}")
+    [ -n "$upstream" ] || die "cannot get upstream ref for $branch"
+
+    fetch_refspecs="$fetch_refspecs $upstream:$branch"
+done
+
+[ -n "$fetch_refspecs" ] || usage
 
 set -x
-exec git fetch . "$upstream:$branch"
+exec git fetch $fetch_opts . $fetch_refspecs
