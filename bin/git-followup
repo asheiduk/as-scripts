@@ -1,0 +1,114 @@
+#!/bin/sh
+
+#
+# git followup <branch>...
+#
+# Update a local branch (not currently checked out) to the remote
+# tracking branch. Will fail if the branch cannot be fast-forwarded.
+#
+# So it's basically the same as
+#
+#    git checkout $branch
+#    git pull --ff-only
+#    git checkout -
+#
+# but does not touch the worktree.
+#
+# AH
+#
+
+dashless="$(basename -- "$0" | sed 's/-/ /')"
+OPTIONS_SPEC="\
+$dashless [options] (<branch> | +<branch>)...
+$dashless [--all|-a] [options]
+
+Update a local branch (not currently checked out) to the remote
+tracking branch. Will fail if the branch cannot be fast-forwarded.
+
+So it's basically the same as
+
+    git checkout <branch>
+    git pull --ff-only
+    git checkout -
+
+but does not touch the worktree.
+
+Using --all updates all local branches which have configured upstream
+branches.
+
+To force an update of only some branches, prepend '+' to the branch name.
+--
+ Available options are
+a,all!          update all branches with configured upstreams
+f,force!        force update of all branches
+n,dry-run!      don't update, show commands only
+"
+
+. git-sh-setup
+
+set_reflog_action "$dashless"
+
+#?# require_work_tree_exists
+
+fetch_opts=
+while [ $# != 0 ]
+do
+    case "$1" in
+        -a|--all)
+	    opt_all=yes
+	    ;;
+	-f|--force)
+	    fetch_opts="$fetch_opts --force"
+	    ;;
+	-n|--dry-run)
+	    fetch_opts="$fetch_opts --dry-run"
+	    ;;
+	--)
+	    shift
+	    break
+	    ;;
+    esac
+    shift
+done
+
+
+if [ -n "$opt_all" ]
+then
+    # either "--all" XOR branch names
+    [ -z "$*" ] || usage
+    head=$(git symbolic-ref HEAD)
+    for branch in $(git show-ref --heads | cut -d ' ' -f2)
+    do
+        if [ "$branch" != "$head" ]
+	then
+	    # simplify branch names
+	    set -- "$@" $(git rev-parse --abbrev-ref "$branch")
+	fi
+    done
+fi
+
+fetch_refspecs=
+for branch in "$@"
+do
+    # strip optional '+'
+    force_branch=
+    case "$branch" in
+        +*)
+	    branch=${branch#+}
+	    force_branch=+
+	    ;;
+    esac
+    
+    # get upstream branch
+    if upstream=$(git rev-parse --abbrev-ref "$branch@{upstream}" 2>/dev/null)
+    then
+        fetch_refspecs="$fetch_refspecs $force_branch$upstream:$branch"
+    else
+        [ -n "$opt_all" ] || die "cannot get upstream ref for $branch"
+    fi
+done
+
+[ -n "$fetch_refspecs" ] || usage
+
+set -x
+exec git fetch $fetch_opts . $fetch_refspecs
