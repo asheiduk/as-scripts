@@ -1,0 +1,44 @@
+#!/bin/sh
+
+#
+# Do some non-interactive commits into the current git repo.
+#
+# Used for building up example histories in test repositories.
+#
+
+#
+# setup
+#
+LONG_USAGE="Automatically edit and commit some file. 
+!!! Use only in test repositories !!!"
+SUBDIRECTORY_OK=true
+. git-sh-setup
+
+require_work_tree_exists
+cd_to_toplevel
+
+tstamp(){
+    date +%Y%m%d-%H%M%S
+}
+
+#
+# get information
+#
+user=$(git config --get user.name)
+#branch=$(git symbolic-ref -q HEAD)
+branch=$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)
+tstamp=$(tstamp)
+repo=$(basename -- "$PWD")
+
+#
+# create/edit file(s)
+#
+file="$(echo "$branch" | sed 's|/|-|g').txt"
+echo "# appending to $file ..."
+echo "$tstamp edit by $user in repository $repo on branch $branch" >> "$file"
+git add "$file"
+
+#
+# commit
+#
+git commit -m "$tstamp edit by $user@$repo/$branch"
