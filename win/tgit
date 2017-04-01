@@ -1,0 +1,52 @@
+#!/bin/bash
+
+#
+# Wrapper für Tortoise-Git, um aus der Shell schnell die entsprechenden GUIs 
+# für Checkin, -Out, Status aufrufen zu können.
+# 
+# Die Doku für Tortoise-Git-Automatisierung:
+#
+#	https://tortoisegit.org/docs/tortoisegit/tgit-automation.html
+#
+# Aliase:
+#
+#	tgit ci			commit (default: .)
+#	tgit co 		checkout (default: .)
+#	tgit st			repostatus
+#	tgit st			repostatus
+#
+# Kein Alias, dennoch nützlich:
+#
+#	tgit log		log (default .)
+#
+#
+# (by) Andreas Heiduk
+#
+
+panic() {
+	echo 1>&2 "ERROR: $*"
+	exit 1
+}
+
+[ -z "$1" ] && panic "no command"
+case "$1" in
+	ci )
+		tsvn_cmd=commit
+		;;
+	co )
+		tsvn_cmd=checkout
+		;;
+	st | status )
+		tsvn_cmd=repostatus
+		;;
+	* )
+		tsvn_cmd="$1"
+		;;
+esac
+shift
+
+if [ -z "$*" ]; then
+	exec TortoiseGitProc.exe /command:$tsvn_cmd /path:.
+else
+	exec TortoiseGitProc.exe /command:$tsvn_cmd /path:"$*"
+fi
