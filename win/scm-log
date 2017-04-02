@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if SVN_WCROOT=$(svn info --show-item wc-root 2> /dev/null); then
+    tsvn log "$SVN_ROOT"
+elif GIT_TOPLEVEL=$(git rev-parse --show-toplevel 2> /dev/null); then
+    gitk --all
+fi
