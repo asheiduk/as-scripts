@@ -44,6 +44,7 @@ f,force!        force update of all branches
 n,dry-run!      don't update, show commands only
 "
 
+SUBDIRECTORY_OK=true
 . git-sh-setup
 
 set_reflog_action "$dashless"
