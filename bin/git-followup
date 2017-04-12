@@ -109,7 +109,15 @@ do
     fi
 done
 
-[ -n "$fetch_refspecs" ] || usage
-
-set -x
-exec git fetch $fetch_opts . $fetch_refspecs
+if [ -z "$fetch_refspecs" ]
+then
+    if [ -z "$opt_all" ]
+    then
+        usage
+    else
+        echo "skip fetch - found no other branches."
+    fi
+else
+    set -x
+    exec git fetch $fetch_opts . $fetch_refspecs
+fi
