@@ -3,3 +3,9 @@ git-roboedit:
 
   - First commit in repo does not detect branch name properly and
     uses "HEAD".
+
+svn-am:
+
+  - Exit code of "svn patch" does not indicate rejected hunks.
+  
+  - git's binary diff format is not rejected but files are empty.
