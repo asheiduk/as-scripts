@@ -1,0 +1,71 @@
+#!/bin/bash
+
+#
+# (c) 2017 Andreas Heiduk
+#
+
+myname=$(basename "$0")
+
+if [ -z "$1" -o -z "$2" ]
+then
+	cat 1>&2 <<-EOF
+		Usage:
+
+		    $myname repo-root banch-path
+
+		Retrieve these informations about the creation of the given branch:
+
+		- The revision which created the branch. This revision contains the copy
+		  of from the origin but might also contain additional changes.
+
+		- The source path of the branch.
+		
+		- The revision which is mentioned in the "A \$BRANCH (from \$SOURCE:\$REV)"
+		  line in svn log. This is NOT the revision of the last change in the source 
+		  but *usually* the revision just before the commit creating the branch.
+		
+		- The revision of the last change in the source path. That's the realy
+		  important information.
+	EOF
+	exit 1
+fi
+
+# TODO: automatically split URL into REPO and BRANCH_PATH
+# REPO=$SVN/java
+REPO="$1"
+
+# TODO: strip leading "/"
+BRANCH_PATH="$2"
+# BRANCH_PATH=branches/DicomParser-NewApi
+
+
+panic (){
+	echo 1>&2 "$*"
+	exit 1
+}
+
+# TODO: check for branch exists
+
+
+# Fist commit on branch:
+eval $(
+	LANG=C svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO/$BRANCH_PATH" |
+		sed -rne 's#^r([0-9]+) .*$#BRANCH_REV=\1#p; s#   A /'"$BRANCH_PATH"' \(from /(.*):([0-9]+)\)#ORIGIN_PATH="\1" ORIGIN_REV=\2#p'
+)
+
+if [ -z "$BRANCH_REV" -o -z "$ORIGIN_PATH" -o -z "$ORIGIN_REV" ]
+then
+	echo 1>&2 "ERROR: Can't get source of branch for '$BRANCH_PATH'."
+	svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO/$BRANCH_PATH" 1>&2
+	exit 1
+fi
+
+echo "Branch '$BRANCH_PATH' was created in r$BRANCH_REV from source '$ORIGIN_PATH@$ORIGIN_REV'."
+
+ORIGIN_COMMIT=$(LANG=C svn log --limit 1 --quiet "$REPO/$ORIGIN_PATH@$ORIGIN_REV" |
+	sed -re '/^-+$/d; s#^r([0-9]+) .*$#\1#')
+
+
+[ -n "$ORIGIN_COMMIT" ] || panic "ERROR: Can't get commit for revision number."
+
+echo "Last relevant commit in '$ORIGIN_PATH' is r$ORIGIN_COMMIT."
