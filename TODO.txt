@@ -1,0 +1,4 @@
+git-followup: Skip *all* branches used in *any* worktree, not just
+    current branch in in current worktree. Add "-w" option to
+    automatically do a pull for these branches in the right worktree.
+
