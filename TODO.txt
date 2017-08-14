@@ -5,3 +5,15 @@ git-followup: Add "branch.$BRANCH.followup" configuration variable.
     Supported values should be "force" to automatically prepend "+" to
     the branch name (works with and without "-a") and "no/false" to skip
     this branch when using "-a".
+	
+	git followup pu
+		branch.pu.followup=force	-> git followup +pu
+		branch.pu.followup=yes		-> git followup pu
+		branch.pu.followup=no		-> git followup pu
+		branch.pu.followup=<unset>	-> git followup pu
+
+	git followup -a
+		branch.pu.followup=force	-> git followup +pu
+		branch.pu.followup=yes		-> git followup pu
+		branch.pu.followup=no		-> git followup 
+		branch.pu.followup=<unset>	-> git followup pu
