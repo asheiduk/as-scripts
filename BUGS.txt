@@ -9,3 +9,5 @@ svn-am:
   - Exit code of "svn patch" does not indicate rejected hunks.
   
   - git's binary diff format is not rejected but files are empty.
+
+  - Renames are not handled properly. (Did not check "copy")
