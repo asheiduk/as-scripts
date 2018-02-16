@@ -4,6 +4,10 @@
 # (c) 2017 Andreas Heiduk
 #
 
+#
+# Note on names: "copyfrom-path" and "copyfrom-rev" are used by "svn log --xml" output.
+# "Last Changed Rev" is used by "svn info".
+
 myname=$(basename "$0")
 
 if [ -z "$1" -o $# -ne 1 ]
@@ -41,10 +45,10 @@ BRANCH_URL="$1"
 #
 # Split BRANCH_URL into repository-root and path within repository.
 #
-REPO=$(LANG=C svn info --show-item repos-root-url --no-newline "$BRANCH_URL")
-[ -n "$REPO" ] || panic "ERROR: Cannot get root of repository."
-BRANCH_PATH="${BRANCH_URL#$REPO/}"
-echo "Repository root is '$REPO'."
+REPO_ROOT=$(LANG=C svn info --show-item repos-root-url --no-newline "$BRANCH_URL")
+[ -n "$REPO_ROOT" ] || panic "ERROR: Cannot get root of repository."
+BRANCH_PATH="${BRANCH_URL#$REPO_ROOT/}"
+echo "Repository root is '$REPO_ROOT'."
 
 # For testing
 # REPO=$SVN/java
@@ -54,26 +58,28 @@ echo "Repository root is '$REPO'."
 # Fist commit on branch:
 #
 eval $(
-	LANG=C svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO/$BRANCH_PATH" |
-		sed -rne 's#^r([0-9]+) .*$#BRANCH_REV=\1#p; s#   A /'"$BRANCH_PATH"' \(from /(.*):([0-9]+)\)#ORIGIN_PATH="\1" ORIGIN_REV=\2#p'
+	LANG=C svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO_ROOT/$BRANCH_PATH" |
+		sed -rn \
+			-e 's#^r([0-9]+) .*$#BRANCH_CREATED_REV=\1#p' \
+			-e 's#   A /'"$BRANCH_PATH"' \(from /(.*):([0-9]+)\)#COPY_FROM_PATH="\1"\nCOPY_FROM_REV=\2#p'
 )
 
-if [ -z "$BRANCH_REV" -o -z "$ORIGIN_PATH" -o -z "$ORIGIN_REV" ]
+if [ -z "$BRANCH_CREATED_REV" -o -z "$COPY_FROM_PATH" -o -z "$COPY_FROM_REV" ]
 then
 	echo 1>&2 "ERROR: Can't get source of branch for '$BRANCH_PATH'."
-	svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO/$BRANCH_PATH" 1>&2
+	svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO_ROOT/$BRANCH_PATH" 1>&2
 	exit 1
 fi
 
-echo "Branch '$BRANCH_PATH' was created in r$BRANCH_REV from source '$ORIGIN_PATH@$ORIGIN_REV'."
+echo "Branch '$BRANCH_PATH' was created in r$BRANCH_CREATED_REV from source '$COPY_FROM_PATH@$COPY_FROM_REV'."
 
 #
 # last commit in source
 #
-ORIGIN_COMMIT=$(LANG=C svn info --show-item last-changed-revision --no-newline "$REPO/$ORIGIN_PATH@$ORIGIN_REV")
+LAST_COMMIT_REV=$(LANG=C svn info --show-item last-changed-revision --no-newline "$REPO_ROOT/$COPY_FROM_PATH@$COPY_FROM_REV")
 # get rid of trailing spaces
-ORIGIN_COMMIT=$(echo $ORIGIN_COMMIT)
+LAST_COMMIT_REV=$(echo $LAST_COMMIT_REV)
 
-[ -n "$ORIGIN_COMMIT" ] || panic "ERROR: Can't get commit for revision number."
+[ -n "$LAST_COMMIT_REV" ] || panic "ERROR: Can't get commit for revision number."
 
-echo "Last relevant commit in '$ORIGIN_PATH' is r$ORIGIN_COMMIT."
+echo "Last relevant commit in '$COPY_FROM_PATH' is r$LAST_COMMIT_REV."
