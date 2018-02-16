@@ -39,13 +39,17 @@ panic (){
 	exit 1
 }
 
+do-svn (){
+	LANG=C svn "$@"
+}
+
 
 BRANCH_URL="$1"
 
 #
 # Split BRANCH_URL into repository-root and path within repository.
 #
-REPO_ROOT=$(LANG=C svn info --show-item repos-root-url --no-newline "$BRANCH_URL")
+REPO_ROOT=$(do-svn info --show-item repos-root-url --no-newline "$BRANCH_URL")
 [ -n "$REPO_ROOT" ] || panic "ERROR: Cannot get root of repository."
 BRANCH_PATH="${BRANCH_URL#$REPO_ROOT/}"
 echo "Repository root is '$REPO_ROOT'."
@@ -57,8 +61,9 @@ echo "Repository root is '$REPO_ROOT'."
 #
 # First commit on branch:
 #
+
 eval $(
-	LANG=C svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO_ROOT/$BRANCH_PATH" |
+	do-svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO_ROOT/$BRANCH_PATH" |
 		sed -rn \
 			-e 's#^r([0-9]+) .*$#BRANCH_CREATED_REV=\1#p' \
 			-e 's#   A /'"$BRANCH_PATH"' \(from /(.*):([0-9]+)\)#COPY_FROM_PATH="\1"\nCOPY_FROM_REV=\2#p'
@@ -67,7 +72,7 @@ eval $(
 if [ -z "$BRANCH_CREATED_REV" -o -z "$COPY_FROM_PATH" -o -z "$COPY_FROM_REV" ]
 then
 	echo 1>&2 "ERROR: Can't get source of branch for '$BRANCH_PATH'."
-	svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO_ROOT/$BRANCH_PATH" 1>&2
+	do-svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO_ROOT/$BRANCH_PATH" 1>&2
 	exit 1
 fi
 
@@ -76,7 +81,7 @@ echo "Branch '$BRANCH_PATH' was created in r$BRANCH_CREATED_REV from source '$CO
 #
 # last commit in source
 #
-LAST_COMMIT_REV=$(LANG=C svn info --show-item last-changed-revision --no-newline "$REPO_ROOT/$COPY_FROM_PATH@$COPY_FROM_REV")
+LAST_COMMIT_REV=$(do-svn info --show-item last-changed-revision --no-newline "$REPO_ROOT/$COPY_FROM_PATH@$COPY_FROM_REV")
 # get rid of trailing spaces
 LAST_COMMIT_REV=$(echo $LAST_COMMIT_REV)
 
