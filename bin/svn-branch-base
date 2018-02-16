@@ -28,7 +28,7 @@ then
 		  line in svn log. This is NOT the revision of the last change in the source 
 		  but *usually* the revision just before the commit creating the branch.
 		
-		- The revision of the last change in the source path. That's the really
+		- The revision of the last change in the source path. This is the really
 		  important information.
 	EOF
 	exit 1
@@ -55,7 +55,7 @@ echo "Repository root is '$REPO_ROOT'."
 # BRANCH_PATH=branches/DicomParser-NewApi
 
 #
-# Fist commit on branch:
+# First commit on branch:
 #
 eval $(
 	LANG=C svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO_ROOT/$BRANCH_PATH" |
