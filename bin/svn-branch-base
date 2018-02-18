@@ -66,7 +66,7 @@ eval $(
 	do-svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO_ROOT/$BRANCH_PATH" |
 		sed -rn \
 			-e 's#^r([0-9]+) .*$#BRANCH_CREATED_REV=\1#p' \
-			-e 's#   A /'"$BRANCH_PATH"' \(from /(.*):([0-9]+)\)#COPY_FROM_PATH="\1"\nCOPY_FROM_REV=\2#p'
+			-e 's#   [AR] /'"$BRANCH_PATH"' \(from /(.*):([0-9]+)\)#COPY_FROM_PATH="\1"\nCOPY_FROM_REV=\2#p'
 )
 
 if [ -z "$BRANCH_CREATED_REV" -o -z "$COPY_FROM_PATH" -o -z "$COPY_FROM_REV" ]
