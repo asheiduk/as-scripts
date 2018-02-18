@@ -8,14 +8,15 @@
 # Note on names: "copyfrom-path" and "copyfrom-rev" are used by "svn log --xml" output.
 # "Last Changed Rev" is used by "svn info".
 
-myname=$(basename "$0")
+usage () {
+	local myname=$(basename "$0")
 
-if [ -z "$1" -o $# -ne 1 ]
-then
+	# delicate TAB/SPC mix below!
 	cat 1>&2 <<-EOF
 		Usage:
 
-		    $myname branch-url
+		    $myname [-s] branch-url
+		    $myname -h
 
 		Retrieve these informations about the creation of the given branch:
 
@@ -30,8 +31,29 @@ then
 		
 		- The revision of the last change in the source path. This is the really
 		  important information.
+		
+		OPTIONS
+		
+		-s  Print the results in the form of shell-variables instead of
+		    human readable format. Beware: The output may not be properly
+		    quoted for eval!
 	EOF
-	exit 1
+}
+
+while getopts "sh" OPT
+do
+	case $OPT in
+		s)	OPT_SH_FORMAT=true ;;
+		h)	usage; exit 0 ;;
+		?)	exit 1 ;;
+	esac
+done
+shift $((OPTIND-1))
+
+if [ -z "$1" -o $# -ne 1 ]
+then
+    usage
+    exit 1
 fi
 
 panic (){
@@ -52,7 +74,12 @@ BRANCH_URL="$1"
 REPO_ROOT=$(do-svn info --show-item repos-root-url --no-newline "$BRANCH_URL")
 [ -n "$REPO_ROOT" ] || panic "ERROR: Cannot get root of repository."
 BRANCH_PATH="${BRANCH_URL#$REPO_ROOT/}"
-echo "Repository root is '$REPO_ROOT'."
+if [ "$OPT_SH_FORMAT" ]
+then
+	declare -p REPO_ROOT
+else
+	echo "Repository root is '$REPO_ROOT'."
+fi
 
 # For testing
 # REPO=$SVN/java
@@ -81,7 +108,12 @@ then
 	exit 1
 fi
 
-echo "Branch '$BRANCH_PATH' was created in r$BRANCH_CREATED_REV from source '$COPY_FROM_PATH@$COPY_FROM_REV'."
+if [ "$OPT_SH_FORMAT" ]
+then
+	declare -p BRANCH_PATH BRANCH_CREATED_REV COPY_FROM_PATH COPY_FROM_REV
+else
+	echo "Branch '$BRANCH_PATH' was created in r$BRANCH_CREATED_REV from source '$COPY_FROM_PATH@$COPY_FROM_REV'."
+fi
 
 #
 # last commit in source
@@ -92,4 +124,9 @@ LAST_COMMIT_REV=$(echo $LAST_COMMIT_REV)
 
 [ -n "$LAST_COMMIT_REV" ] || panic "ERROR: Can't get commit for revision number."
 
-echo "Last relevant commit in '$COPY_FROM_PATH' is r$LAST_COMMIT_REV."
+if [ "$OPT_SH_FORMAT" ]
+then
+	declare -p LAST_COMMIT_REV
+else
+	echo "Last relevant commit in '$COPY_FROM_PATH' is r$LAST_COMMIT_REV."
+fi
