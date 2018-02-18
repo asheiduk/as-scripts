@@ -58,21 +58,26 @@ echo "Repository root is '$REPO_ROOT'."
 # REPO=$SVN/java
 # BRANCH_PATH=branches/DicomParser-NewApi
 
+
+# Normalize path names
+PEG=$(sed -rne 's/^.*@([1-9][0-9])*$/\1/p' <<< "$BRANCH_PATH")
+BRANCH_PATH_NAKED=${BRANCH_PATH%@$PEG}
+
 #
 # First commit on branch:
 #
 
 eval $(
-	do-svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO_ROOT/$BRANCH_PATH" |
+	do-svn log --stop-on-copy -r0:${PEG:-HEAD} --limit 1 --quiet --verbose "$REPO_ROOT/$BRANCH_PATH" |
 		sed -rn \
 			-e 's#^r([0-9]+) .*$#BRANCH_CREATED_REV=\1#p' \
-			-e 's#   [AR] /'"$BRANCH_PATH"' \(from /(.*):([0-9]+)\)#COPY_FROM_PATH="\1"\nCOPY_FROM_REV=\2#p'
+			-e 's#   [AR] /'"$BRANCH_PATH_NAKED"' \(from /(.*):([0-9]+)\)#COPY_FROM_PATH="\1"\nCOPY_FROM_REV=\2#p'
 )
 
 if [ -z "$BRANCH_CREATED_REV" -o -z "$COPY_FROM_PATH" -o -z "$COPY_FROM_REV" ]
 then
 	echo 1>&2 "ERROR: Can't get source of branch for '$BRANCH_PATH'."
-	do-svn log --stop-on-copy -r0:HEAD --limit 1 --quiet --verbose "$REPO_ROOT/$BRANCH_PATH" 1>&2
+	do-svn log --stop-on-copy -r0:${PEG:-HEAD} --limit 1 --quiet --verbose "$REPO_ROOT/$BRANCH_PATH" 1>&2
 	exit 1
 fi
 
