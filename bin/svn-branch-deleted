@@ -1,0 +1,89 @@
+#!/bin/bash
+
+#!/bin/bash
+
+
+panic (){
+    echo 1>&2 "ERROR: $*"
+    exit 1
+}
+
+#
+# bisection algorithm in SH
+#
+#     bisect start stop predicate
+#
+# Parameter
+#    start        the lower bound of the search space
+#    stop         the upper bound of the search space
+#    predicate    will be called with parameters current, known_good, known_bad
+#                     The last two parametes can be empty strings for the first calls!
+#
+bisect () {
+    local -i limit_start="$1"
+    local -i limit_stop="$2"
+    local predicate="$3"
+    
+    local -i known_good known_bad next
+    
+    # verify limits
+    
+    next=limit_start
+    if $predicate $next $known_good $known_bad
+    then
+        known_good=limit_start
+    else
+        # or: simply return lower limit with failure
+        panic "predicate does not return success for lower limit"
+    fi
+    
+    next=limit_stop
+    if $predicate $next $known_good $known_bad
+    then
+        # or: simply return upper limit with success
+	panic "predicate does not return failure for upper limit"
+    else
+        known_bad=limit_stop
+    fi
+    
+    # do binary search
+    next=$(( (known_bad + known_good) / 2 ))
+    while (( known_good < next && next < known_bad ))
+    do
+	if $predicate $next $known_good $known_bad
+	then
+	    known_good=next
+	else
+	    known_bad=next
+	fi
+	
+	next=$(( (known_bad + known_good) / 2 ))
+    done
+    
+    echo known_good=$known_good
+    echo known_bad=$known_bad
+}
+
+
+
+# --------------------------------------------------------
+
+# search deletion of branch branches/test@15
+
+R=file:///home/as/git/as-scripts-work/test/svn-branch/svn-repo
+BRANCH=branches/test
+BRANCH_PEG=15
+
+f1 () {
+    local -i current="$1"
+    local known_good="$2"
+    local known_bad="$3"
+    
+    echo "trying $current (between '$known_good' and '$known_bad')"
+    
+    svn log --stop-on-copy --limit 1 --quiet -r$next:${known_good:-$BRANCH_PEG} "$R/$BRANCH@$BRANCH_PEG" #&> /dev/null
+}
+
+declare -i HEAD_REV=$(svn info --no-newline --show-item revision $R)
+
+bisect $BRANCH_PEG $HEAD_REV f1
