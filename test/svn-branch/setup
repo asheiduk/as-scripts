@@ -1,0 +1,87 @@
+#!/bin/bash
+
+REPO_DIR=svn-repo
+
+svn () (
+    unset -f svn
+    set -x
+    svn --quiet "$@"
+)
+
+
+commit-sequence() (
+    N="$1"
+    branch="$2"
+    message="$3"
+    
+    cd "$branch"
+    
+    for i in $( seq 1 $N )
+    do
+        echo >> README.txt "on $branch"
+        svn commit -m "$message"
+    done
+)
+
+# setup repository
+
+svnadmin create "$REPO_DIR"
+svn checkout "file://$PWD/$REPO_DIR" svn-wc
+cd svn-wc
+
+svn mkdir trunk branches tags
+svn commit -m "initial repository layout"
+
+touch trunk/README.txt
+svn add trunk/README.txt
+svn commit -m "initial data"
+
+
+N=10
+BRANCH=branches/test
+
+# trunk does some fundamental work
+commit-sequence $N trunk "work on trunk"
+
+# first experimental branch
+svn update
+svn copy trunk "$BRANCH"
+svn commit -m "create test branch (no. 1)"
+commit-sequence $N "$BRANCH" "work on test 1"
+
+# some more work on trunk while branches/test still exists
+commit-sequence $N trunk "work on trunk"
+
+# delete first experimental branch
+svn update
+svn remove "$BRANCH"
+svn commit -m "delete test branch (no. 1)"
+
+# some more work on trunk
+commit-sequence $N trunk "work on trunk"
+
+# second experiment
+svn update
+svn copy trunk "$BRANCH"
+svn commit -m "create test branch (no. 2)"
+commit-sequence $N "$BRANCH" "work on test 2"
+
+# no work on trunk - delete expirement 2 immediately
+svn update
+svn remove "$BRANCH"
+svn commit -m "delete test branch (no. 2)"
+
+# third experiment - delete and create are adjacent
+svn update
+svn copy trunk "$BRANCH"
+svn commit -m "create test branch (no. 3) - adjacent"
+commit-sequence $N "$BRANCH" "work on test 3 - adjacent"
+
+# fourth experiment - delete and create in one step (aka. replace)
+svn update
+svn remove "$BRANCH"
+svn copy trunk "$BRANCH"
+svn commit -m "create test branch (no. 4) - replace"
+commit-sequence $N "$BRANCH" "work on test 4 - replace"
+
+svn update
