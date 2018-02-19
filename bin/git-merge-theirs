@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Implementation hints for a custom merge strategy:
+#
+# git merge-XXX ... -- <head> ...
+#
+# exit 2:	seems to be special
+#
+# example code:
+#	- git-merge-octopus.sh
+#	- git-merge-ours.sh
+#	- git-merge-resolve.sh
+#	- t/t7606-merge-custom.sh
+#
+
+# Equivalent effect without using a merge-strategy:
+#
+#		hash=$(work git commit-tree -p HEAD -p "$remote" -m "Merge branch '$remote'" "$remote^{tree}")
+#		# ERROR checks
+#		work git reset --hard "$hash"
+
+# The first parameters up to -- are merge bases; the rest are heads.
+bases= head= remotes= sep_seen=
+for arg
+do
+	case ",$sep_seen,$head,$arg," in
+	*,--,)
+		sep_seen=yes
+		;;
+	,yes,,*)
+		head=$arg
+		;;
+	,yes,*)
+		remotes="$remotes$arg "
+		;;
+	*)
+		bases="$bases$arg "
+		;;
+	esac
+done
+
+# Give up if we are given two or more remotes -- not handling octopus.
+case "$remotes" in
+?*' '?*)
+	exit 2 ;;
+esac
+
+git read-tree --reset -u $remotes || exit 2
