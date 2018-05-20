@@ -34,7 +34,7 @@ So it's basically the same as
 but does not touch the worktree.
 
 Using --all updates all local branches which have configured upstream
-branches.
+branches but branches checked out in a worktree are skipped.
 
 To force an update of only some branches, prepend '+' to the branch name.
 --
@@ -77,15 +77,7 @@ if [ -n "$opt_all" ]
 then
     # either "--all" XOR branch names
     [ -z "$*" ] || usage
-    head=$(git symbolic-ref HEAD)
-    for branch in $(git show-ref --heads | cut -d ' ' -f2)
-    do
-        if [ "$branch" != "$head" ]
-	then
-	    # simplify branch names
-	    set -- "$@" $(git rev-parse --abbrev-ref "$branch")
-	fi
-    done
+    set -- $(git rev-parse --abbrev-ref --branches)
 fi
 
 fetch_refspecs=
@@ -103,7 +95,13 @@ do
     # get upstream branch
     if upstream=$(git rev-parse --abbrev-ref "$branch@{upstream}" 2>/dev/null)
     then
-        fetch_refspecs="$fetch_refspecs $force_branch$upstream:$branch"
+        # filter HEAD of all worktrees
+        if ! git rev-parse --abbrev-ref $(git worktree list --porcelain | sed -n 's|^branch ||p') | grep -xqs "$branch"
+        then
+            fetch_refspecs="$fetch_refspecs $force_branch$upstream:$branch"
+        else
+            echo "skipping worktree HEAD '$branch'"
+        fi
     else
         [ -n "$opt_all" ] || die "cannot get upstream ref for $branch"
     fi

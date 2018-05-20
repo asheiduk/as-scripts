@@ -1,6 +1,5 @@
-git-followup: Skip *all* branches used in *any* worktree, not just
-    current branch in in current worktree. Add "-w" option to
-    automatically do a pull for these branches in the right worktree.
+git-followup: Add "-w" option to automatically do a pull for
+	skipped branches in the right worktree.
 
 git-followup: Add "branch.$BRANCH.followup" configuration variable.
     Supported values should be "force" to automatically prepend "+" to
