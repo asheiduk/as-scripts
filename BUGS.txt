@@ -1,9 +1,4 @@
 
-git-roboedit:
-
-  - First commit in repo does not detect branch name properly and
-    uses "HEAD".
-
 svn-am:
 
   - Exit code of "svn patch" does not indicate rejected hunks.
