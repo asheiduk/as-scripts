@@ -25,8 +25,12 @@ tstamp(){
 # get information
 #
 user=$(git config --get user.name)
-#branch=$(git symbolic-ref -q HEAD)
-branch=$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)
+# usecases:
+#  - empty repo (i.e. first commit)
+#  - detached HEAD
+#  - normal branch
+branch=$(git symbolic-ref --quiet --short HEAD || echo 'HEAD')
+# branch=$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)
 tstamp=$(tstamp)
 repo=$(basename -- "$PWD")
 
