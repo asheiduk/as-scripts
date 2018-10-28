@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# usage: 
+#	pathtool -s 
+#	pathtool -s "$PATH"		split PATH into parts - one line per part
+
+#   printf "%s\n" $PATH" foo bar bla | pathtool -j
+
+usage() {
+	local self=$(basename $0)
+	echo 1>&2 "usage: $self -s [$<VARNAME>]"
+	exit "${1:-1}"
+}
+
+debug() {
+	printf 2>&1 "## %s\n" "$@"
+}
+
+path_split() {
+	local val
+	for val
+	do
+		tr : \\n <<< "$val"
+	done
+}
+
+path_join() {
+	(IFS=":"; printf "%s\n" "$*")
+}
+
+while getopts "sjh" OPT
+do
+	case $OPT in
+		s|j)
+			OP="$OPT"
+			;;
+		h|?)
+			usage 0
+			;;
+	esac
+done
+shift $((OPTIND-1))
+
+case $OP in
+	s)
+		path_split "$@"
+		;;
+	j)
+		path_join "$@"
+		;;
+	*)
+		usage 1
+		;;
+esac
+
