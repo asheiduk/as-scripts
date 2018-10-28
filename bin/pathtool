@@ -4,7 +4,7 @@
 #	pathtool -s 
 #	pathtool -s "$PATH"		split PATH into parts - one line per part
 
-#   printf "%s\n" $PATH" foo bar bla | pathtool -j
+#	pathtool -j "$PATH" foo bar bla
 
 usage() {
 	local self=$(basename $0)
