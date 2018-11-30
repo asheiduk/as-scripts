@@ -40,6 +40,7 @@ To force an update of only some branches, prepend '+' to the branch name.
 --
  Available options are
 a,all!          update all branches with configured upstreams
+d,detach	    detach worktree when branch is checked out
 f,force!        force update of all branches
 n,dry-run!      don't update, show commands only
 "
@@ -51,6 +52,8 @@ set_reflog_action "$dashless"
 
 #?# require_work_tree_exists
 
+opt_detach=
+opt_dry_run=
 fetch_opts=
 while [ $# != 0 ]
 do
@@ -58,11 +61,15 @@ do
         -a|--all)
 	    opt_all=yes
 	    ;;
+	-d|--detach)
+		opt_detach=yes
+	    ;;
 	-f|--force)
 	    fetch_opts="$fetch_opts --force"
 	    ;;
 	-n|--dry-run)
 	    fetch_opts="$fetch_opts --dry-run"
+	    opt_dry_run=yes
 	    ;;
 	--)
 	    shift
@@ -77,7 +84,7 @@ if [ -n "$opt_all" ]
 then
     # either "--all" XOR branch names
     [ -z "$*" ] || usage
-    set -- $(git rev-parse --abbrev-ref --branches)
+    set -- $(git rev-parse --symbolic --branches)
 fi
 
 fetch_refspecs=
@@ -96,12 +103,28 @@ do
     if upstream=$(git rev-parse --abbrev-ref "$branch@{upstream}" 2>/dev/null)
     then
         # filter HEAD of all worktrees
-        if ! git rev-parse --abbrev-ref $(git worktree list --porcelain | sed -n 's|^branch ||p') | grep -xqs "$branch"
+# git worktree list --porcelain | sed -n '/^worktree /{s///;h}; \|^branch refs/heads/master$|{g;p}'
+		worktree=$(git worktree list --porcelain | sed -n '/^worktree /{s///;h}; \|^branch refs/heads/'"$branch"'$|{g;p}')
+        if [ -n "$worktree" ]
         then
-            fetch_refspecs="$fetch_refspecs $force_branch$upstream:$branch"
-        else
-            echo "skipping worktree HEAD '$branch'"
+        	if [ -n "$opt_detach" ]
+        	then
+        		# TODO: detach only, if branch != upstream
+        		if [ -n "$opt_dry_run" ]
+        		then
+	        		echo "would detach branch '$branch' in worktree '$worktree'"
+        		else
+        			(
+        				set -x
+        				git -C "$worktree" checkout --detach --quiet
+        			)
+           		fi
+        	else
+        		echo "skipping '$branch': HEAD in worktree '$worktree'"
+        		continue
+        	fi
         fi
+        fetch_refspecs="$fetch_refspecs $force_branch$upstream:$branch"
     else
         [ -n "$opt_all" ] || die "cannot get upstream ref for $branch"
     fi
