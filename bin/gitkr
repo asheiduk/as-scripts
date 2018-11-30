@@ -1,0 +1,94 @@
+#!/bin/bash
+
+# Usage:
+#
+#		gitk --argscmd=gitkr
+#
+# gitkr tries to guess the most important refs for the currently checked
+# out branch in a git-flow workflow. These refs and their upstreams are
+# then displayed by `gitk`.
+#
+
+ref-with-upstream () {
+	for ref in "$@"
+	do
+		local upstream="$(git rev-parse --symbolic "$ref@{u}" 2>/dev/null)"
+		if [ -z "$upstream" ]
+		then
+			printf -- "%s\n" "$ref"
+		else
+			printf -- "%s\n" "$ref" "$upstream"
+		fi
+	done
+}
+
+# Find the base branch for the given `release/*` or
+# `hotfix/*` branch.
+#
+# Do not assume that releases always come from
+# `develop` for two reasons:
+#
+# 1) `support/*` branches can be the source for
+#    hotfixes and releases.
+# 2) Some setups might reuse the `release/*` branch
+#    name in a hotfix process. Usecase are fewer CI jobs.
+release-base() {
+	# TODO: Matching might happen via the `/*` suffixes
+	#	in `hotfix/*` or `release/*` with `develop`/`master`
+	#	as a fallback
+	:
+}
+
+#
+# Find the base branch for the given `feature/*`` branch.
+#
+feature-base () {
+	local HEAD="$1"
+
+	# gitflow configuration
+	local branch_base=$(git config --local "gitflow.branch.$HEAD.base")
+	if [ -n "$branch_base" ]
+	then
+		echo "$branch_base"
+		return
+	fi
+
+	# TODO: try to guess a better base using `git merge-base --fork-point $GUESS $HEAD`
+	# 	with `GUESS={master,develop,support/*,$ORIGIN/support/*}`
+	#	NOTE: Is `$ORIGIN/support/*` usefull at all?
+
+	# last fallback...
+	git config gitflow.branch.develop || echo develop
+}
+
+HEAD="${1:-$(git symbolic-ref --quiet --short HEAD)}"
+if [ -z "$HEAD" ]
+then
+	for alt_head in rebase-apply/head-name rebase-merge/head-name
+	do
+		alt_head="$(git rev-parse --git-path "$alt_head")"
+		if [ -f "$alt_head" ]
+		then
+			HEAD="$(sed 's:^refs/heads/::' "$alt_head")"
+			break
+		fi
+	done
+fi
+
+case "$HEAD" in
+	master )
+		ref-with-upstream "$HEAD" develop
+		;;
+	develop )
+		ref-with-upstream "$HEAD"
+		;;
+	support/* )
+		ref-with-upstream "$HEAD"
+		;;
+	release/* | hotfix/* )
+		ref-with-upstream "$HEAD" $(release-base "$HEAD")
+		;;
+	feature/* | bugfix/* )
+		ref-with-upstream "$HEAD" $(feature-base "$HEAD")
+		;;
+esac
