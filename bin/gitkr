@@ -29,7 +29,7 @@ ref-with-upstream () {
 # `develop` for two reasons:
 #
 # 1) `support/*` branches can be the source for
-#    hotfixes and releases.
+#    hotfixes and releases, too.
 # 2) Some setups might reuse the `release/*` branch
 #    name in a hotfix process. Usecase are fewer CI jobs.
 release-base() {
