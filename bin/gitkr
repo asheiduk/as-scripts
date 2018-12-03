@@ -33,9 +33,29 @@ ref-with-upstream () {
 # 2) Some setups might reuse the `release/*` branch
 #    name in a hotfix process. Usecase are fewer CI jobs.
 release-base() {
+	local HEAD="$1"
+
+	# gitflow configuration
+	local branch_base=$(git config --local "gitflow.branch.$HEAD.base")
+	if [ -n "$branch_base" ]
+	then
+		echo "$branch_base"
+		return
+	fi
+
 	# TODO: Matching might happen via the `/*` suffixes
 	#	in `hotfix/*` or `release/*` with `develop`/`master`
 	#	as a fallback
+
+	local suffix="${HEAD#*/}"
+	# Details:
+	
+	# match the suffix against
+	# - support/$SUFFIX
+	# - $ORIGIN/support/$SUFFIX
+	# note: this works only if the release/hotfix branch does NOT contain a concrete version number.
+	# e.g:  support/prv-18.2  -> release/prv-18.2 -> tag v18.2.14
+		
 	:
 }
 
