@@ -4,7 +4,7 @@ declare -A _BASH_ABBR
 abbr () {
 	if [ -n "$READLINE_POINT" ]
 	then
-		local prefix=${READLINE_LINE:0:$READLINE_POINT}
+		local prefix=${READLINE_LINE%% *}
 	
 		[ -n "$prefix" ] || return
 	
@@ -12,7 +12,7 @@ abbr () {
 		[ -n "$replace" ] || return
 	
 		replace="$replace "
-		READLINE_LINE="$replace${READLINE_LINE:$READLINE_POINT}"
+		READLINE_LINE="$replace${READLINE_LINE:${#prefix}}"
 		READLINE_POINT=${#replace}
 		
 		return
