@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # Do some non-interactive commits into the current git repo.
@@ -6,20 +6,71 @@
 # Used for building up example histories in test repositories.
 #
 
+
 #
 # setup
 #
-LONG_USAGE="Automatically edit and commit some file. 
-!!! Use only in test repositories !!!"
+
+#####################################################################
+# git-sh-setup
+
+dashless="$(basename -- "$0" | sed 's/-/ /')"
+OPTIONS_STUCKLONG=t
+OPTIONS_SPEC="\
+$dashless [-r n]
+
+Automatically edit and commit some file.
+!!! Use only in test repositories !!!
+--
+r,random?!N	add N random text lines to file (default:8)
+"
+
 SUBDIRECTORY_OK=true
 . git-sh-setup
 
 require_work_tree_exists
 cd_to_toplevel
 
+#####################################################################
+
 tstamp(){
     date +%Y%m%d-%H%M%S
 }
+
+random_text () {
+	# Inspired by https://unix.stackexchange.com/a/182761 and
+	# http://www.bashoneliners.com/oneliners/199/ but improved
+	# to not discard so much data and adding "-u" to fmt.
+	tr '\200-\377' '\000-\177' </dev/urandom |
+	tr '\000-\037\040-\077\100-\137' '\140-\177\140-\177\140-\177' |
+	tr '\140\173-\177' '[\n*2][ *]' |
+	sed 's/^ *//' |
+	cat -s |
+	fmt -u
+}
+
+#####################################################################
+
+declare -i opt_random=0
+
+while [ $# != 0 ]
+do
+	case "$1" in
+		--random)
+			opt_random=8
+			;;
+		--random=*)
+			opt_random=${1#--random=}
+			(( opt_random > 0 )) || opt_random=0
+			;;
+		--)
+			shift
+			break;
+	esac
+	shift
+done
+
+[ -z "$*" ] || usage
 
 #
 # get information
@@ -39,7 +90,13 @@ repo=$(basename -- "$PWD")
 #
 file="$(echo "$branch" | sed 's|/|-|g').txt"
 echo "# appending to $file ..."
-echo "$tstamp edit by $user in repository $repo on branch $branch" >> "$file"
+
+if ((opt_random > 0 ))
+then
+	random_text | head --lines=$opt_random >> "$file"
+else
+	echo "$tstamp edit by $user in repository $repo on branch $branch" >> "$file"
+fi
 git add "$file"
 
 #
