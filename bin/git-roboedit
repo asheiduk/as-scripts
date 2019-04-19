@@ -24,6 +24,7 @@ Automatically edit and commit some file.
 --
 r,random?!N			add N random text lines to file (default:10)
 n=N					create N commits
+f,file=!file		write to <file> (most likely generating a conflict)
 "
 
 SUBDIRECTORY_OK=true
@@ -54,6 +55,7 @@ random_text () {
 
 declare -i opt_random=0
 declare -i opt_n=1
+declare opt_file=
 
 while [ $# != 0 ]
 do
@@ -68,6 +70,9 @@ do
 		-n*)
 			opt_n=${1#-n}
 			(( opt_n > 0 )) || opt_n=1
+			;;
+		--file=*)
+			opt_file=${1#--file=}
 			;;
 		--)
 			shift
@@ -91,21 +96,25 @@ branch=$(git symbolic-ref --quiet --short HEAD || echo 'HEAD')
 tstamp=$(tstamp)
 repo=$(basename -- "$PWD")
 
-file="$(echo "$branch" | sed 's|/|-|g').txt"
+if [ -z "$opt_file" ]
+then
+	opt_file="$branch.txt"
+fi
+opt_file="$(echo "$opt_file" | sed 's|/|-|g')"
 
 for ((i=0; i<opt_n; ++i))
 do
 	#
 	# create/edit file(s)
 	#
-	echo "# appending to $file ..."
+	echo "# appending to $opt_file ..."
 	if ((opt_random > 0 ))
 	then
-		random_text | head --lines=$opt_random >> "$file"
+		random_text | head --lines=$opt_random >> "$opt_file"
 	else
-		echo "$tstamp edit by $user in repository $repo on branch $branch" >> "$file"
+		echo "$tstamp edit by $user in repository $repo on branch $branch" >> "$opt_file"
 	fi
-	git add "$file"
+	git add "$opt_file"
 	
 	#
 	# commit
