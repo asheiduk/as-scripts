@@ -23,6 +23,7 @@ Automatically edit and commit some file.
 !!! Use only in test repositories !!!
 --
 r,random?!N			add N random text lines to file (default:10)
+n=N					create N commits
 "
 
 SUBDIRECTORY_OK=true
@@ -52,6 +53,7 @@ random_text () {
 #####################################################################
 
 declare -i opt_random=0
+declare -i opt_n=1
 
 while [ $# != 0 ]
 do
@@ -62,6 +64,10 @@ do
 		--random=*)
 			opt_random=${1#--random=}
 			(( opt_random > 0 )) || opt_random=0
+			;;
+		-n*)
+			opt_n=${1#-n}
+			(( opt_n > 0 )) || opt_n=1
 			;;
 		--)
 			shift
@@ -85,21 +91,24 @@ branch=$(git symbolic-ref --quiet --short HEAD || echo 'HEAD')
 tstamp=$(tstamp)
 repo=$(basename -- "$PWD")
 
-#
-# create/edit file(s)
-#
 file="$(echo "$branch" | sed 's|/|-|g').txt"
-echo "# appending to $file ..."
 
-if ((opt_random > 0 ))
-then
-	random_text | head --lines=$opt_random >> "$file"
-else
-	echo "$tstamp edit by $user in repository $repo on branch $branch" >> "$file"
-fi
-git add "$file"
-
-#
-# commit
-#
-git commit -m "$tstamp edit by $user@$repo/$branch"
+for ((i=0; i<opt_n; ++i))
+do
+	#
+	# create/edit file(s)
+	#
+	echo "# appending to $file ..."
+	if ((opt_random > 0 ))
+	then
+		random_text | head --lines=$opt_random >> "$file"
+	else
+		echo "$tstamp edit by $user in repository $repo on branch $branch" >> "$file"
+	fi
+	git add "$file"
+	
+	#
+	# commit
+	#
+	git commit -m "$tstamp edit by $user@$repo/$branch"
+done
