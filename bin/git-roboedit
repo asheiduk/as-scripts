@@ -22,7 +22,7 @@ $dashless [-r n]
 Automatically edit and commit some file.
 !!! Use only in test repositories !!!
 --
-r,random?!N	add N random text lines to file (default:8)
+r,random?!N			add N random text lines to file (default:10)
 "
 
 SUBDIRECTORY_OK=true
@@ -57,7 +57,7 @@ while [ $# != 0 ]
 do
 	case "$1" in
 		--random)
-			opt_random=8
+			opt_random=10
 			;;
 		--random=*)
 			opt_random=${1#--random=}
