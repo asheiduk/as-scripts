@@ -83,6 +83,61 @@ show-summary () {
 	fi
 }
 
+#--------------------------------------------------------------------
+# config & options
+
+option () {
+	local key="$1"
+
+	# FIXME: implement
+	true
+}
+
+gitflow-config-flag () {
+	local key="$1"
+	[ $(command git config --bool "gitflow.feature.finish.$key") = true ]
+}
+
+#--------------------------------------------------------------------
+# git support
+
+update-tracking-branch () {
+	local branch="$1"
+
+	eval $(git for-each-ref --shell --format "local origin=%(upstream:remotename) refspec=%(upstream:remoteref):%(upstream)" "refs/heads/$branch" )
+	git fetch "$origin" "$refspec"
+	summary-action "fetched '$branch' from '$origin'"
+}
+
+has-remote () {
+	local branch="$1"
+	git rev-parse --verify --quiet "$branch@{upstream}" >/dev/null 2>&1
+}
+
+upstream () {
+	local branch="$1"
+	git rev-parse --verify --quiet --abbrev-ref "$branch@{upstream}" 2>/dev/null
+}
+
+remote-name () {
+	local branch="$1"
+	# alternative: git config branch.$branch.remote
+	git for-each-ref --format "%(upstream:remotename)" "refs/heads/$branch" 
+}
+
+tracking-status () {
+	local branch="$1"
+	
+	# either: git for-each-ref --format="%(upstream:trackshort)" refs/heads/$branch
+	#		gives "<", ">", "<>" or "="
+	# or: git rev-list --count --left-right "$branch...$branch@{upstream}" | tr \\t ,
+
+	local status
+	status=$(git for-each-ref --format="%(upstream:trackshort)" "refs/heads/$branch") || return
+	[ -n "$status" ] || return 1
+	echo "$status"
+}
+
 #####################################################################
 
 cmd_start () {
@@ -121,6 +176,55 @@ cmd_finish () {
 	# branch-exists "$base" || die
 	# branch-exists "$feature_branch" || die
 
+
+	#
+	# prepare base branch
+	#
+	if has-remote "$base"
+	then
+		# fetch from upstream
+		if option fetch || gitflow-config-flag fetch
+		then
+			update-tracking-branch "$base"
+		fi
+
+		# fast forward (if possible and necessary)
+		case $(tracking-status "$base") in
+			= | ">" )
+				# local base is equal or ahead upstream - no action required
+				;;
+			"<")
+				# local base is behind its upstream -- catch up!
+				# TODO: guard with "option ff-base"?
+				git fetch . "$(upstream "$base"):$base"
+				summary-action "local base branch '$base' has been fast-forwarded to upstream"
+				;;
+			"<>")
+				# base and upstream diverged -- abort!
+				# TODO: try auto-rebase? would require checkout of base!
+				trap ERR
+				show-summary
+				echo 1>&2
+				echo 1>&2 "Local base branch '$base' has diverged from upstream."
+				echo 1>&2 "Rebase '$base' onto '$base@{upstream}' or merge both branches and try again."
+				exit 10
+				;;
+		esac
+	fi
+
+	#
+	# prepare feature-branch
+	#
+	if has-remote "$feature_branch"
+	then
+		if option fetch || gitflow-config-flag fetch
+		then
+			update-tracking-branch "$feature_branch"
+		fi
+		# TODO: try FF local FB?
+		# TODO: abort if remote FB changed?
+	fi
+
 	
 	# rebase feature branch
 	git rebase --rebase-merges "$base"
@@ -144,6 +248,13 @@ cmd_finish () {
 			;;
 	esac
 	
+	# delete remote branch
+	if has-remote "$feature_branch"
+	then
+		git push --delete "$(remote-name "$feature_branch")" "$feature_branch"
+		summary-action "remote branch '$feature_branch' has been deleted"
+	fi
+
 	# delete local branch
 	git branch -d "$feature_branch"
 	summary-action "local branch '$feature_branch' has been deleted"
