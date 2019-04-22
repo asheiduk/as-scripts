@@ -113,3 +113,42 @@ setup () {
 		*  (tag: develop-old, origin42/master, master)
 	EOF
 }
+
+@test "feature finish with diverged develop" {
+	# create develop@{upstream}
+	git roboedit -n1 &&
+	git push &&
+	git reset --hard @~ &&
+	# create diverged develop
+	# TODO: this is where git uses "ticks" instead...
+	echo >> develop.txt &&
+	git roboedit -n1 &&
+	git tag develop-old &&
+	# now start feature branch from develop~
+	git checkout -b feature/topic1 @~ &&
+	git roboedit -n3 &&
+	verify-graph <<-\EOF &&
+		*  (tag: develop-old, develop)
+		| *  (HEAD -> feature/topic1)
+		| *
+		| *
+		|/
+		| *  (origin42/develop)
+		|/
+		*  (origin42/master, master)
+	EOF
+	run git feature finish -v &&
+	[ "$status" = 10 ]
+	# implicit checks:
+	#	nothing changed
+	verify-graph <<-\EOF
+		*  (tag: develop-old, develop)
+		| *  (HEAD -> feature/topic1)
+		| *
+		| *
+		|/
+		| *  (origin42/develop)
+		|/
+		*  (origin42/master, master)
+	EOF
+}
