@@ -27,6 +27,7 @@ Automatically edit and commit some file.
 r,random?!N			add N random text lines to file (default:10)
 n=N					create N commits
 f,file=!file		write to <file> (most likely generating a conflict)
+q,quiet!			reduce output
 "
 
 SUBDIRECTORY_OK=true
@@ -58,6 +59,7 @@ random_text () {
 declare -i opt_random=0
 declare -i opt_n=1
 declare opt_file=
+declare opt_quiet=
 
 while [ $# != 0 ]
 do
@@ -75,6 +77,9 @@ do
 			;;
 		--file=*)
 			opt_file=${1#--file=}
+			;;
+		--quiet)
+			opt_quiet="--quiet"
 			;;
 		--)
 			shift
@@ -109,7 +114,7 @@ do
 	#
 	# create/edit file(s)
 	#
-	echo "# appending to $opt_file ..."
+	[ -z "$opt_quiet" ] && echo "# appending to $opt_file ..."
 	if ((opt_random > 0 ))
 	then
 		random_text | head --lines=$opt_random >> "$opt_file"
@@ -121,5 +126,5 @@ do
 	#
 	# commit
 	#
-	git commit -m "$tstamp edit by $user@$repo/$branch"
+	git commit $opt_quiet -m "$tstamp edit by $user@$repo/$branch"
 done
