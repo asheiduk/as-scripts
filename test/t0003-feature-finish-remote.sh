@@ -61,7 +61,7 @@ setup () {
 		*  (tag: develop-old, develop)
 		*  (origin42/master, origin42/develop, master)
 	EOF
-	git feature finish -v
+	git feature finish
 	# implicit checks:
 	#	on develop
 	#	no "feature/topic1" branch
@@ -95,7 +95,7 @@ setup () {
 		* 
 		*  (tag: develop-old, origin42/master, origin42/develop, master, develop)
 	EOF
-	git feature finish -v
+	git feature finish
 	# implicit checks:
 	#	on develop
 	#	develop@{upstream} was updated
@@ -137,8 +137,8 @@ setup () {
 		|/
 		*  (origin42/master, master)
 	EOF
-	run git feature finish -v
-	[ "$status" = 10 ]
+	run git feature finish
+	(( status == 10 ))
 	# implicit checks:
 	#	nothing changed
 	verify-graph <<-\EOF
