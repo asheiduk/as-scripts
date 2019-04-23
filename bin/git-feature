@@ -168,7 +168,7 @@ cmd_finish () {
 	local feature_branch="$(git symbolic-ref --short --quiet HEAD)"
 	local base=develop
 
-	trap "show-summary; exit" ERR
+	trap 'status=$?; show-summary; exit $status' ERR
 	
 
 	# TODO: checks:
@@ -259,8 +259,8 @@ cmd_finish () {
 	git branch -d "$feature_branch"
 	summary-action "local branch '$feature_branch' has been deleted"
 	
-	# delete config
-	git config --remove-section "gitflow.branch.$feature_branch"
+	# delete config (ignoring errors)
+	git config --remove-section "gitflow.branch.$feature_branch" || true
 	
 	show-summary
 }

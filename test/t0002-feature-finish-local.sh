@@ -145,7 +145,8 @@ setup () {
 		|/  
 		*  (master)
 	EOF
-	git feature finish
+	run git feature finish
+	(( status != 0 ))
 	# implicit checks:
 	#	on develop
 	#	in rebase (due to refs/rewritten/onto)
@@ -157,7 +158,4 @@ setup () {
 		|/  
 		*  (master)
 	EOF
-	# TODO: checks:
-	#	exit code SHOULD BE != 0
-	#	perhaps rebase should be aborted and the FB checked out again?
 }
