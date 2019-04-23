@@ -10,11 +10,22 @@ abbr () {
 	
 		local replace=${_BASH_ABBR[$prefix]}
 		[ -n "$replace" ] || return
-	
-		replace="$replace "
-		READLINE_LINE="$replace${READLINE_LINE:${#prefix}}"
-		READLINE_POINT=${#replace}
-		
+
+		# With "xxx" defined as "X Y Z" and "^" the cursor position:
+		#
+		#	xxx^		--> X Y Z ^		# note the space!
+		#	xxx arg^	--> X Y Z arg^	# note no space
+		#	xxx ar^g	--> X Y Z ar^g
+		#
+		if (( READLINE_POINT == ${#prefix} ))
+		then
+			# replace immediately after keyword --> insert additional space
+			READLINE_LINE="$replace ${READLINE_LINE:${#prefix}}"
+			(( READLINE_POINT = READLINE_POINT - ${#prefix} + ${#replace} + 1 ))
+		else
+			READLINE_LINE="$replace${READLINE_LINE:${#prefix}}"
+			(( READLINE_POINT = READLINE_POINT - ${#prefix} + ${#replace} ))
+		fi
 		return
 	fi
 
