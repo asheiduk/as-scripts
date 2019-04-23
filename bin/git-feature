@@ -138,6 +138,17 @@ tracking-status () {
 	echo "$status"
 }
 
+#--------------------------------------------------------------------
+# unsorted
+
+abort () {
+	# disable error trap
+	trap - ERR
+	show-summary
+	cat
+	exit $1
+}
+
 #####################################################################
 
 cmd_start () {
@@ -202,12 +213,11 @@ cmd_finish () {
 			"<>")
 				# base and upstream diverged -- abort!
 				# TODO: try auto-rebase? would require checkout of base!
-				trap ERR
-				show-summary
-				echo 1>&2
-				echo 1>&2 "Local base branch '$base' has diverged from upstream."
-				echo 1>&2 "Rebase '$base' onto '$base@{upstream}' or merge both branches and try again."
-				exit 10
+				abort 10 <<-EOF
+					
+					Local base branch '$base' has diverged from upstream.
+					Rebase '$base' onto '$base@{upstream}' or merge both branches and try again.
+				EOF
 				;;
 		esac
 	fi
