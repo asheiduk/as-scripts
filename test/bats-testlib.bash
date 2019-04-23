@@ -34,10 +34,23 @@ private-test-dir () {
 }
 
 setup-default-repo (){
-	git commit --quiet --allow-empty -m "initial commit" &&
+	git commit --quiet --allow-empty -m "0" &&
 	git checkout -b develop
 }
 
+commit () {
+	local message="$1"
+	local branch="$2"
+	
+	[ -n "$branch" ] || branch=$(git symbolic-ref --quiet --short HEAD || echo 'HEAD')
+	local file=$(echo "$branch" | tr / - ).txt
+	
+	printf "%s\n" "$message" >> "$file" &&
+	git add -- "$file" &&
+	git commit --quiet -m "$message" &&
+	printf "committed %s\n" "$message"
+}
+	
 verify-graph (){
 	sed 's/[[:space:]]*$//' > log.exp &&
 	git log --format="%d" --graph --all | sed 's/[[:space:]]*$//' > log.act &&
