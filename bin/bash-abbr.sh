@@ -1,3 +1,17 @@
+#
+# Configure keybinding like this:
+#
+#		bind -x '"\C-p": abbr'
+#
+# and abbreviations like this:
+#
+#		abbr gsl	git stash list
+#		abbr gwl	git worktree list
+#
+# Show existing abbreviations with
+#
+#		abbr
+#
 
 declare -A _BASH_ABBR
 
