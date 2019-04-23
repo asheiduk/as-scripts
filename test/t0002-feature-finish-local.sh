@@ -4,8 +4,8 @@ load bats-testlib
 
 setup () {
 	say "=================================="
-	private-test-dir &&
-	git init . &&
+	private-test-dir
+	git init .
 	setup-default-repo
 }
 
@@ -16,16 +16,16 @@ setup () {
 }
 
 @test "simple feature finish" {
-	git tag develop-old &&
-	git checkout -b feature/topic1 &&
-	git roboedit -n3 &&
-	verify-graph <<-\EOF &&
+	git tag develop-old
+	git checkout -b feature/topic1
+	git roboedit -n3
+	verify-graph <<-\EOF
 		*  (HEAD -> feature/topic1)
 		* 
 		* 
 		*  (tag: develop-old, master, develop)
 	EOF
-	git feature finish &&
+	git feature finish
 	# implicit checks:
 	#	on develop
 	#	no "feature/topic1" branch
@@ -45,8 +45,8 @@ setup () {
 }
 
 @test "feature finish with NOP feature" {
-	git checkout -b feature/topic1 &&
-	git feature finish &&
+	git checkout -b feature/topic1
+	git feature finish
 	# implicit checks:
 	#	on develop
 	#	no "feature/topic1" branch
@@ -57,15 +57,15 @@ setup () {
 }
 
 @test "feature finish with rebase" {
-	git checkout -b feature/topic1 &&
-	git roboedit -n3 &&
+	git checkout -b feature/topic1
+	git roboedit -n3
 	# "concurrent" commits in develop
-	git checkout develop &&
-	git roboedit -n2 &&
-	git tag develop-old &&
+	git checkout develop
+	git roboedit -n2
+	git tag develop-old
 	# back to topic1
-	git checkout - &&
-	verify-graph <<-\EOF &&
+	git checkout -
+	verify-graph <<-\EOF
 		*  (tag: develop-old, develop)
 		* 
 		| *  (HEAD -> feature/topic1)
@@ -74,7 +74,7 @@ setup () {
 		|/  
 		*  (master)
 	EOF
-	git feature finish &&
+	git feature finish
 	# implicit checks:
 	#	on develop
 	#	no "feature/topic1" branch
@@ -98,21 +98,21 @@ setup () {
 
 @test "feature finish with rebase and ff merge" {
 	git checkout -b feature/topic1 &&
-	git roboedit -n1 &&
+	git roboedit -n1
 	# "concurrent" commits in develop
-	git checkout develop &&
-	git roboedit -n2 &&
-	git tag develop-old &&
+	git checkout develop
+	git roboedit -n2
+	git tag develop-old
 	# back to topic1
-	git checkout - &&
-	verify-graph <<-\EOF &&
+	git checkout -
+	verify-graph <<-\EOF
 		*  (tag: develop-old, develop)
 		* 
 		| *  (HEAD -> feature/topic1)
 		|/  
 		*  (master)
 	EOF
-	git feature finish &&
+	git feature finish
 	# implicit checks:
 	#	on develop
 	#	no "feature/topic1" branch
@@ -130,22 +130,22 @@ setup () {
 }
 
 @test "feature finish rebase error" {
-	git checkout -b feature/topic1 &&
-	git roboedit -n1 -f develop.txt &&
+	git checkout -b feature/topic1
+	git roboedit -n1 -f develop.txt
 	# "concurrent" commits in develop
-	git checkout develop &&
-	git roboedit -n2 &&
-	git tag develop-old &&
+	git checkout develop
+	git roboedit -n2
+	git tag develop-old
 	# back to topic1
-	git checkout - &&
-	verify-graph <<-\EOF &&
+	git checkout -
+	verify-graph <<-\EOF
 		*  (tag: develop-old, develop)
 		* 
 		| *  (HEAD -> feature/topic1)
 		|/  
 		*  (master)
 	EOF
-	git feature finish &&
+	git feature finish
 	# implicit checks:
 	#	on develop
 	#	in rebase (due to refs/rewritten/onto)
