@@ -21,7 +21,9 @@ setup () {
 @test "feature finish with remote branches" {
 	# start feature branch
 	git checkout -b feature/topic1
-	git roboedit -n3
+	commit t1
+	commit t2
+	commit t3
 	git push --set-upstream origin42 feature/topic1
 	verify-graph <<-\EOF
 		*  (HEAD -> feature/topic1, origin42/feature/topic1)
@@ -49,11 +51,13 @@ setup () {
 @test "feature finish while develop ahead upstream" {
 #	skip "value of this test is questionable"
 	# we are ahead of origin42/develop
-	git roboedit -n1
+	commit d1
 	# now start feature branch
 	git tag develop-old
 	git checkout -b feature/topic1
-	git roboedit -n3
+	commit t1
+	commit t2
+	commit t3
 	verify-graph <<-\EOF
 		*  (HEAD -> feature/topic1)
 		* 
@@ -81,14 +85,16 @@ setup () {
 
 @test "feature finish while develop behind upstream with fetch" {
 	# we are behind develop@{upstream} (and don't know it!)
-	git roboedit -n1
+	commit d1
 	git push
 	git reset --hard @~
 	git update-ref refs/remotes/origin42/develop @
 	# now start feature branch
 	git tag develop-old
 	git checkout -b feature/topic1
-	git roboedit -n3
+	commit t1
+	commit t2
+	commit t3
 	verify-graph <<-\EOF
 		*  (HEAD -> feature/topic1)
 		* 
@@ -116,17 +122,17 @@ setup () {
 
 @test "feature finish with diverged develop" {
 	# create develop@{upstream}
-	git roboedit -n1
+	commit d1
 	git push
 	git reset --hard @~
 	# create diverged develop
-	# TODO: this is where git uses "ticks" instead...
-	echo >> develop.txt
-	git roboedit -n1
+	commit d2
 	git tag develop-old
 	# now start feature branch from develop~
 	git checkout -b feature/topic1 @~
-	git roboedit -n3
+	commit t1
+	commit t2
+	commit t3
 	verify-graph <<-\EOF
 		*  (tag: develop-old, develop)
 		| *  (HEAD -> feature/topic1)
