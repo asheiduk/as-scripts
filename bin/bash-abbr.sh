@@ -21,7 +21,7 @@ abbr () {
 	case $# in
 		0 )
 			local name
-			for name in "${!_BASH_ABBR[@]}"
+			for name in $(printf "%s\n" "${!_BASH_ABBR[@]}" | sort)
 			do
 				printf "abbr %s '%s'\n" "$name" "${_BASH_ABBR[$name]}"
 			done
