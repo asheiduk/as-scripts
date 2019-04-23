@@ -18,7 +18,9 @@ setup () {
 @test "simple feature finish" {
 	git tag develop-old
 	git checkout -b feature/topic1
-	git roboedit -n3
+	commit t1
+	commit t2
+	commit t3
 	verify-graph <<-\EOF
 		*  (HEAD -> feature/topic1)
 		* 
@@ -58,10 +60,13 @@ setup () {
 
 @test "feature finish with rebase" {
 	git checkout -b feature/topic1
-	git roboedit -n3
+	commit t1
+	commit t2
+	commit t3
 	# "concurrent" commits in develop
 	git checkout develop
-	git roboedit -n2
+	commit d1
+	commit d2
 	git tag develop-old
 	# back to topic1
 	git checkout -
@@ -98,10 +103,11 @@ setup () {
 
 @test "feature finish with rebase and ff merge" {
 	git checkout -b feature/topic1 &&
-	git roboedit -n1
+	commit t1
 	# "concurrent" commits in develop
 	git checkout develop
-	git roboedit -n2
+	commit d1
+	commit d2
 	git tag develop-old
 	# back to topic1
 	git checkout -
@@ -131,10 +137,12 @@ setup () {
 
 @test "feature finish rebase error" {
 	git checkout -b feature/topic1
-	git roboedit -n1 -f develop.txt
+	# create conflicting content
+	commit t1 develop
 	# "concurrent" commits in develop
 	git checkout develop
-	git roboedit -n2
+	commit d1
+	commit d2
 	git tag develop-old
 	# back to topic1
 	git checkout -
