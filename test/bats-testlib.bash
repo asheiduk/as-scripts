@@ -56,3 +56,29 @@ verify-graph (){
 	git log --format="%d" --graph --all | sed 's/[[:space:]]*$//' > log.act &&
 	diff -c log.exp log.act
 }
+
+assert-config () {
+	local key="$1"
+	local exp="$2"
+	local act
+
+	if [ -z "${2+X}" ]
+	then
+		# check for unset values
+		act=$(git config "$key") && {
+			printf "git-config '%s' returned value '%s' instead of an error\n" "$key" "$act"
+			return 10
+		}
+		return 0
+	else
+		# check for value match
+		act=$(git config "$key") || {
+			printf "git-config '%s' returned error %d\n" "$key" $?
+			return 11
+		}
+		[ "$act" = "$exp" ] || {
+			printf "git-config value is wrong: actual='%s', expected='%s'\n" "$act" "$exp"
+			return 12
+		}
+	fi
+}
