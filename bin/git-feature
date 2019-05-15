@@ -295,16 +295,11 @@ do
     shift
 done
 
-case "$1" in
-	start)
-		shift
-		cmd_start "$@"
-		;;
-	finish)
-		shift
-		cmd_finish "$@"
-		;;
-	*)
-		usage
-		;;
-esac
+cmd="cmd_$1"
+if declare -F "$cmd" > /dev/null
+then
+	shift
+	"$cmd" "$@"
+else
+	usage
+fi
