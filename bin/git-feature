@@ -283,7 +283,7 @@ cmd_finish () {
 	summary-action "local branch '$feature_branch' has been deleted"
 	
 	# delete config (ignoring errors)
-	git config --remove-section "gitflow.branch.$feature_branch" || true
+	git config --remove-section "gitflow.branch.$feature_branch" 2>/dev/null || true
 	
 }
 
