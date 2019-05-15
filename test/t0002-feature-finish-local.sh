@@ -167,3 +167,49 @@ setup () {
 		*  (master)
 	EOF
 }
+
+@test "feature finish with different base branches" {
+	git branch develop-gf develop
+	git branch develop-t3 develop
+	verify-graph <<-\EOF
+		*  (HEAD -> develop, master, develop-t3, develop-gf)
+	EOF
+
+	git checkout master
+	git checkout -b feature/topic1
+	commit t1
+	git feature finish
+	# expect: develop moved
+	verify-graph <<-\EOF
+		*  (HEAD -> develop)
+		*  (master, develop-t3, develop-gf)
+	EOF
+
+	git config gitflow.branch.develop develop-gf
+	git checkout master
+	git checkout -b feature/topic2
+	commit t2
+	git feature finish
+	# expect: develop-gf moved
+	verify-graph <<-\EOF
+		*  (develop)
+		| *  (HEAD -> develop-gf)
+		|/
+		*  (master, develop-t3)
+	EOF
+
+	git config gitflow.branch.develop develop-t3
+	git checkout master
+	git checkout -b feature/topic3
+	commit t3
+	git feature finish
+	# expect: develop-t3 moved
+	verify-graph <<-\EOF
+		*  (develop)
+		| *  (develop-gf)
+		|/
+		| *  (HEAD -> develop-t3)
+		|/
+		*  (master)
+	EOF
+}

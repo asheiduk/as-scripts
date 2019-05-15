@@ -98,6 +98,13 @@ gitflow-config-flag () {
 	[ $(command git config --bool "gitflow.feature.finish.$key") = true ]
 }
 
+base-branch () {
+	local feature_branch="$1"
+	[ -n "$feature_branch" ] && git config "gitflow.branch.$feature_branch.base" ||
+	git config gitflow.branch.develop ||
+	echo develop
+}
+
 #--------------------------------------------------------------------
 # git support
 
@@ -168,7 +175,7 @@ cmd_start () {
 	setup
 
 	local feature="$1"
-	local base="develop"
+	local base=$(base-branch)
 	
 	# 
 	# TODO: checks:
@@ -191,7 +198,7 @@ cmd_finish () {
 	setup
 
 	local feature_branch="$(git symbolic-ref --short --quiet HEAD)"
-	local base=develop
+	local base=$(base-branch "$feature_branch")
 
 	
 
