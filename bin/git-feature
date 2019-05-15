@@ -141,17 +141,32 @@ tracking-status () {
 #--------------------------------------------------------------------
 # unsorted
 
+# setup function to be called by each "cmd_*" function
+#
+# The ERR trap is not inherited by default. There seems to be no way to
+# enable the inheritance JUST to the cmd_* functions and not to functions
+# THEY call. "set -E" enables inheritance to all functions
+#
+# So every "cmd_*" function must call this helper as the first command.
+#
+setup () {
+	trap 'abort $? < /dev/null' ERR
+}
+
 abort () {
+	local status=${1-$?}
 	# disable error trap
 	trap - ERR
 	show-summary
 	cat
-	exit $1
+	exit $status
 }
 
 #####################################################################
 
 cmd_start () {
+	setup
+
 	local feature="$1"
 	local base="develop"
 	
@@ -170,16 +185,14 @@ cmd_start () {
 	git config "gitflow.branch.$feature_branch.base" "$base"
 	summary-action "created local branch '$feature_branch' from '$base'"
 #	summary-action "You are now on branch '$feature_branch'"
-	
-	show-summary
 }
 
 cmd_finish () {
+	setup
 
 	local feature_branch="$(git symbolic-ref --short --quiet HEAD)"
 	local base=develop
 
-	trap 'status=$?; show-summary; exit $status' ERR
 	
 
 	# TODO: checks:
@@ -272,7 +285,6 @@ cmd_finish () {
 	# delete config (ignoring errors)
 	git config --remove-section "gitflow.branch.$feature_branch" || true
 	
-	show-summary
 }
 
 #-------------
@@ -300,6 +312,7 @@ if declare -F "$cmd" > /dev/null
 then
 	shift
 	"$cmd" "$@"
+	show-summary
 else
 	usage
 fi
