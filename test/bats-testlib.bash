@@ -44,10 +44,11 @@ commit () {
 	
 	[ -n "$branch" ] || branch=$(git symbolic-ref --quiet --short HEAD || echo 'HEAD')
 	local file=$(echo "$branch" | tr / - ).txt
+	local time=$(date -d "yesterday 12:00" +"%s +0100")
 	
 	printf "%s\n" "$message" >> "$file" &&
 	git add -- "$file" &&
-	git commit --quiet -m "$message" &&
+	GIT_COMMITTER_DATE="$time" GIT_AUTHOR_DATE="$time" git commit --quiet -m "$message" &&
 	printf "committed %s\n" "$message"
 }
 	
