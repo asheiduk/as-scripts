@@ -105,6 +105,11 @@ base-branch () {
 	echo develop
 }
 
+feature-prefix () {
+	git config gitflow.prefix.feature ||
+	echo "feature/"
+}
+
 #--------------------------------------------------------------------
 # git support
 
@@ -187,7 +192,7 @@ cmd_start () {
 	# TODO: (optional) fetch & update $BASE
 	
 	# create branch & checkout
-	local feature_branch="feature/$feature"
+	local feature_branch="$(feature-prefix)$feature"
 	git checkout -b "$feature_branch" "$base"
 	git config "gitflow.branch.$feature_branch.base" "$base"
 	summary-action "created local branch '$feature_branch' from '$base'"
@@ -200,10 +205,13 @@ cmd_finish () {
 	local feature_branch="$(git symbolic-ref --short --quiet HEAD)"
 	local base=$(base-branch "$feature_branch")
 
-	
+	local feature_prefix="$(feature-prefix)"
+	[[ $feature_branch == "$feature_prefix"?* ]] || abort 5 <<-EOF
+		Your are not on a feature branch.
+		A feature branch must be start with '$feature_prefix'
+	EOF
 
 	# TODO: checks:
-	#	current branch is a feature-branch
 	# branch-exists "$base" || die
 	# branch-exists "$feature_branch" || die
 
