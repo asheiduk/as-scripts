@@ -150,6 +150,11 @@ tracking-status () {
 	echo "$status"
 }
 
+branch-exists () {
+	local branch="$1"
+	git rev-parse --verify --quiet > /dev/null "$branch"
+}
+
 #--------------------------------------------------------------------
 # unsorted
 
@@ -182,17 +187,23 @@ cmd_start () {
 	local feature="$1"
 	local base=$(base-branch)
 	
+	branch-exists "$base" || abort 6 <<-EOF
+		The base branch '$base' for this feature branch does not exists.
+	EOF
+	
 	# 
 	# TODO: checks:
-	#	- $BASE exists
-	#	- $feature_branch does NOt exist
 	#	- $feature and $base are valid
 	#	- if $base is a hash, translate it into an (existing) branch
 
 	# TODO: (optional) fetch & update $BASE
 	
-	# create branch & checkout
 	local feature_branch="$(feature-prefix)$feature"
+	branch-exists "$feature_branch" && abort 7 <<-EOF
+		The feature branch '$feature_branch' does already exist!
+	EOF
+	
+	# create branch & checkout
 	git checkout -b "$feature_branch" "$base"
 	git config "gitflow.branch.$feature_branch.base" "$base"
 	summary-action "created local branch '$feature_branch' from '$base'"
@@ -211,10 +222,9 @@ cmd_finish () {
 		A feature branch must be start with '$feature_prefix'
 	EOF
 
-	# TODO: checks:
-	# branch-exists "$base" || die
-	# branch-exists "$feature_branch" || die
-
+	branch-exists "$base" || abort 6 <<-EOF
+		The base branch '$base' for this feature branch does not exists.
+	EOF
 
 	#
 	# prepare base branch
