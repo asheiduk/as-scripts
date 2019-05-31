@@ -97,8 +97,9 @@ option () {
 }
 
 gitflow-config-flag () {
-	local key="$1"
-	[ "$(command git config --bool "gitflow.feature.finish.$key")" = true ]
+	local command="$1"
+	local key="$2"
+	[ "$(command git config --bool "gitflow.feature.$command.$key")" = true ]
 }
 
 base-branch () {
@@ -235,7 +236,7 @@ cmd_finish () {
 	if has-remote "$base"
 	then
 		# fetch from upstream
-		if option fetch || gitflow-config-flag fetch
+		if option fetch || gitflow-config-flag finish fetch
 		then
 			update-tracking-branch "$base"
 		fi
@@ -268,7 +269,7 @@ cmd_finish () {
 	#
 	if has-remote "$feature_branch"
 	then
-		if option fetch || gitflow-config-flag fetch
+		if option fetch || gitflow-config-flag finish fetch
 		then
 			update-tracking-branch "$feature_branch"
 		fi
