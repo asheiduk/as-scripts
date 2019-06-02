@@ -26,7 +26,7 @@
 # git-sh-setup
 
 dashless="$(basename -- "$0" | sed 's/-/ /')"
-OPTIONS_SPEC="\
+X_OPTIONS_SPEC="\
 $dashless start [-v] [-q] <feature-name>
 $dashless finish [-v] [-q] [-f]
 --
@@ -38,7 +38,15 @@ f,fetch!	fetch branches from upstream
 "
 
 SUBDIRECTORY_OK=true
+
+# Currently (git 2.21.0) git-sh-setup does not support --stop-at-non-option.
+# Workaround: Hide any commandline arguments from git-sh-setup and handle them
+# later.
+declare -a SAVE_ARGS=( "$@" )
+set --
 . git-sh-setup
+set -- "${SAVE_ARGS[@]}"
+unset SAVE_ARGS
 
 set_reflog_action "$dashless"
 
@@ -186,6 +194,31 @@ abort () {
 
 cmd_start () {
 	setup
+	
+	eval "$(git rev-parse --parseopt -- "$@" <<-EOF || echo exit $?;
+		git feature start [-c] [-q|-v] <feature-name>
+		--
+		q,quiet!	skip some output
+		v,verbose!	add some more output
+	EOF
+	)"
+	
+	while [ $# != 0 ]
+	do
+		case "$1" in
+		-v|--verbose)
+			OPT_VERBOSE=true
+			;;
+		-q|--quiet)
+			OPT_QUIET=true
+			;;
+		--)
+			shift
+			break
+			;;
+		esac
+		shift
+	done
 
 	local feature="$1"
 	local base=$(base-branch)
@@ -216,6 +249,35 @@ cmd_start () {
 cmd_finish () {
 	setup
 
+	eval "$(git rev-parse --parseopt -- "$@" <<-EOF || echo exit $?;
+		git feature finish [-q|-v] <feature-name>
+		--
+		q,quiet!	skip some output
+		v,verbose!	add some more output
+		f,fetch		fetch remote feature- and base-branch
+	EOF
+	)"
+	
+	while [ $# != 0 ]
+	do
+		case "$1" in
+		-v|--verbose)
+			OPT_VERBOSE=true
+			;;
+		-q|--quiet)
+			OPT_QUIET=true
+			;;
+		-f|--fetch)
+			OPT_FETCH=true
+			;;
+		--)
+			shift
+			break
+			;;
+		esac
+		shift
+	done
+	
 	local feature_branch="$(git symbolic-ref --short --quiet HEAD)"
 	local base=$(base-branch "$feature_branch")
 
@@ -317,26 +379,26 @@ cmd_finish () {
 
 #-------------
 
-fetch_opts=
-while [ $# != 0 ]
-do
-    case "$1" in
-    -v|--verbose)
-    	OPT_VERBOSE=true
-    	;;
-    -q|--quiet)
-    	OPT_QUIET=true
-    	;;
-    -f|--fetch)
-    	OPT_FETCH=true
-    	;;
-	--)
-	    shift
-	    break
-	    ;;
-    esac
-    shift
-done
+#fetch_opts=
+#while [ $# != 0 ]
+#do
+#    case "$1" in
+#    -v|--verbose)
+#    	OPT_VERBOSE=true
+#    	;;
+#    -q|--quiet)
+#    	OPT_QUIET=true
+#    	;;
+#    -f|--fetch)
+#    	OPT_FETCH=true
+#    	;;
+#	--)
+#	    shift
+#	    break
+#	    ;;
+#    esac
+#    shift
+#done
 
 cmd="cmd_$1"
 if declare -F "$cmd" > /dev/null
