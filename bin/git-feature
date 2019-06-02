@@ -27,10 +27,14 @@
 
 dashless="$(basename -- "$0" | sed 's/-/ /')"
 OPTIONS_SPEC="\
-$dashless start <feature-name>
+$dashless start [-v] [-q] <feature-name>
+$dashless finish [-v] [-q] [-f]
 --
+ common options:
 v,verbose!	show git commands
 q,quiet!	suppress more output
+ options for 'finish':
+f,fetch!	fetch branches from upstream
 "
 
 SUBDIRECTORY_OK=true
@@ -87,15 +91,14 @@ show-summary () {
 # config & options
 
 option () {
-	local key="$1"
-
-	# FIXME: implement
-	true
+	local -n var="OPT_${1^^}"
+	# same values as "git config --bool" - but only for the "true" side
+	[[ "$var" =~ ^(yes|on|true|1)$ ]]
 }
 
 gitflow-config-flag () {
 	local key="$1"
-	[ $(command git config --bool "gitflow.feature.finish.$key") = true ]
+	[ "$(command git config --bool "gitflow.feature.finish.$key")" = true ]
 }
 
 base-branch () {
@@ -323,6 +326,9 @@ do
     	;;
     -q|--quiet)
     	OPT_QUIET=true
+    	;;
+    -f|--fetch)
+    	OPT_FETCH=true
     	;;
 	--)
 	    shift

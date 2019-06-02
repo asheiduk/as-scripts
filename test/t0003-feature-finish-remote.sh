@@ -101,7 +101,7 @@ setup () {
 		* 
 		*  (tag: develop-old, origin42/master, origin42/develop, master, develop)
 	EOF
-	git feature finish
+	git feature finish --fetch
 	# implicit checks:
 	#	on develop
 	#	develop@{upstream} was updated
@@ -143,7 +143,7 @@ setup () {
 		|/
 		*  (origin42/master, master)
 	EOF
-	run git feature finish
+	run git feature finish --fetch
 	(( status == 10 ))
 	# implicit checks:
 	#	nothing changed
