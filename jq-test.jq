@@ -1,4 +1,4 @@
-#!jq --run-tests
+#!/usr/bin/jq --run-tests
 # test 1
 .
 {"FOO":{"key1":42,"key2":"foo"},"BAR":{"key1":21,"key2":"bar"}}
