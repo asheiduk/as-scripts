@@ -87,7 +87,7 @@
         },
         "sku": "24GRA8RB2KZ9NPCS",
         "termAttributes": {
-          "LeaseContractLength": "1r",
+          "LeaseContractLength": "1yr",
           "OfferingClass": "standard",
           "PurchaseOption": "Partial Upfront"
         }

@@ -15,7 +15,7 @@ def find_key2($map):
 # OK:
 # { "PurchaseOption": "Partial Upfront",	"LeaseContractLength": "1yr", "OfferingClass": "standard" } | find_key2($mappings::mappings[].RerservedTerms)
 
-# OK - for just one item
-.terms.Reserved[].termAttributes | debug | find_key2($mappings::mappings[].RerservedTerms)
+# OK
+.terms.Reserved[].termAttributes | find_key2($mappings::mappings[].RerservedTerms)
 
 # .terms.Reserved[].termAttributes | debug
