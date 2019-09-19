@@ -1,4 +1,4 @@
-import "x-mappings" as $mappings;
+import "aws-mappings" as $mappings;
 def find_key($map; $value):
 	$map | to_entries[] | select( .value == $value ) | .key;
 	
