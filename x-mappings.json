@@ -1,0 +1,64 @@
+{
+  "RerservedTerms": {
+    "STD-NU-1yr": {
+      "LeaseContractLength": "1yr",
+      "OfferingClass": "standard",
+      "PurchaseOption": "No Upfront"
+    },
+    "STD-NU-3yr": {
+      "LeaseContractLength": "3yr",
+      "OfferingClass": "standard",
+      "PurchaseOption": "No Upfront"
+    },
+    "STD-PU-1yr": {
+      "LeaseContractLength": "1yr",
+      "OfferingClass": "standard",
+      "PurchaseOption": "Partial Upfront"
+    },
+    "STD-PU-3yr": {
+      "LeaseContractLength": "3yr",
+      "OfferingClass": "standard",
+      "PurchaseOption": "Partial Upfront"
+    },
+    "STD-AU-1yr": {
+      "LeaseContractLength": "1yr",
+      "OfferingClass": "standard",
+      "PurchaseOption": "All Upfront"
+    },
+    "STD-AU-3yr": {
+      "LeaseContractLength": "3yr",
+      "OfferingClass": "standard",
+      "PurchaseOption": "All Upfront"
+    },
+    "CONV-NU-1yr": {
+      "LeaseContractLength": "1yr",
+      "OfferingClass": "convertible",
+      "PurchaseOption": "No Upfront"
+    },
+    "CONV-NU-3yr": {
+      "LeaseContractLength": "3yr",
+      "OfferingClass": "convertible",
+      "PurchaseOption": "No Upfront"
+    },
+    "CONV-PU-1yr": {
+      "LeaseContractLength": "1yr",
+      "OfferingClass": "convertible",
+      "PurchaseOption": "Partial Upfront"
+    },
+    "CONV-PU-3yr": {
+      "LeaseContractLength": "3yr",
+      "OfferingClass": "convertible",
+      "PurchaseOption": "Partial Upfront"
+    },
+    "CONV-AU-1yr": {
+      "LeaseContractLength": "1yr",
+      "OfferingClass": "convertible",
+      "PurchaseOption": "All Upfront"
+    },
+    "CONV-AU-3yr": {
+      "LeaseContractLength": "3yr",
+      "OfferingClass": "convertible",
+      "PurchaseOption": "All Upfront"
+    }
+  }
+}

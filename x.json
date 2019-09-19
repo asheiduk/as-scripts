@@ -1,0 +1,97 @@
+{
+  "product": {
+    "attributes": {
+      "foo": "bla bla",
+      "bar": "blub blub"
+    }
+  },
+  "terms": {
+    "OnDemand": {
+      "24GRA8RB2KZ9NPCS.JRTCKXETXF": {
+        "effectiveDate": "2017-09-01T00:00:00Z",
+        "offerTermCode": "JRTCKXETXF",
+        "priceDimensions": {
+          "24GRA8RB2KZ9NPCS.JRTCKXETXF.6YS6EN2CT7": {
+            "appliesTo": [],
+            "beginRange": "0",
+            "description": "$30.88 per On Demand Windows with SQL Server Enterprise m4.16xlarge Instance Hour",
+            "endRange": "Inf",
+            "pricePerUnit": {
+              "USD": "30.8800000000"
+            },
+            "rateCode": "24GRA8RB2KZ9NPCS.JRTCKXETXF.6YS6EN2CT7",
+            "unit": "Hrs"
+          }
+        },
+        "sku": "24GRA8RB2KZ9NPCS",
+        "termAttributes": {}
+      }
+    },
+    "Reserved": {
+      "24GRA8RB2KZ9NPCS.38NPMPTW36": {
+        "effectiveDate": "2017-04-30T23:59:59Z",
+        "offerTermCode": "38NPMPTW36",
+        "priceDimensions": {
+          "24GRA8RB2KZ9NPCS.38NPMPTW36.2TG2D8R56U": {
+            "appliesTo": [],
+            "description": "Upfront Fee",
+            "pricePerUnit": {
+              "USD": "374227"
+            },
+            "rateCode": "24GRA8RB2KZ9NPCS.38NPMPTW36.2TG2D8R56U",
+            "unit": "Quantity"
+          },
+          "24GRA8RB2KZ9NPCS.38NPMPTW36.6YS6EN2CT7": {
+            "appliesTo": [],
+            "beginRange": "0",
+            "description": "Windows with SQL Server Enterprise (Amazon VPC), m4.16xlarge reserved instance applied",
+            "endRange": "Inf",
+            "pricePerUnit": {
+              "USD": "14.2400000000"
+            },
+            "rateCode": "24GRA8RB2KZ9NPCS.38NPMPTW36.6YS6EN2CT7",
+            "unit": "Hrs"
+          }
+        },
+        "sku": "24GRA8RB2KZ9NPCS",
+        "termAttributes": {
+          "LeaseContractLength": "3yr",
+          "OfferingClass": "standard",
+          "PurchaseOption": "Partial Upfront"
+        }
+      },
+      "24GRA8RB2KZ9NPCS.YYYYYYYYYY": {
+        "effectiveDate": "2017-04-30T23:59:59Z",
+        "offerTermCode": "YYYYYYYYYY",
+        "priceDimensions": {
+          "24GRA8RB2KZ9NPCS.YYYYYYYYYY.2TG2D8R56U": {
+            "appliesTo": [],
+            "description": "Upfront Fee",
+            "pricePerUnit": {
+              "USD": "374227"
+            },
+            "rateCode": "24GRA8RB2KZ9NPCS.YYYYYYYYYY.2TG2D8R56U",
+            "unit": "Quantity"
+          },
+          "24GRA8RB2KZ9NPCS.YYYYYYYYYY.6YS6EN2CT7": {
+            "appliesTo": [],
+            "beginRange": "0",
+            "description": "Windows with SQL Server Enterprise (Amazon VPC), m4.16xlarge reserved instance applied",
+            "endRange": "Inf",
+            "pricePerUnit": {
+              "USD": "14.2400000000"
+            },
+            "rateCode": "24GRA8RB2KZ9NPCS.YYYYYYYYYY.6YS6EN2CT7",
+            "unit": "Hrs"
+          }
+        },
+        "sku": "24GRA8RB2KZ9NPCS",
+        "termAttributes": {
+          "LeaseContractLength": "1r",
+          "OfferingClass": "standard",
+          "PurchaseOption": "Partial Upfront"
+        }
+      }
+    }
+  }
+}
