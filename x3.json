@@ -1,0 +1,16 @@
+{
+  "priceDimensions": {
+    "222FSQ7X57S9DN65.NQ3QZPMQV9.2TG2D8R56U": {
+      "unit": "Quantity",
+      "description": "Upfront Fee",
+      "USD": "493999"
+    },
+    "222FSQ7X57S9DN65.NQ3QZPMQV9.6YS6EN2CT7": {
+      "unit": "Hrs",
+      "description": "USD 0.0 per Windows with SQL Server Standard (Amazon VPC), r5.24xlarge reserved instance applied",
+      "USD": "0.0000000000"
+    }
+  },
+  "sku": "222FSQ7X57S9DN65",
+  "offerTermCode": "NQ3QZPMQV9"
+}
